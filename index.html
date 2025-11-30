@@ -370,17 +370,6 @@
       box-shadow: 0 0 0 3px rgba(184, 164, 212, 0.1);
     }
 
-    /* Loading State */
-    .loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .loading::after {
-      content: ' 🌙 Carregando...';
-      font-size: 0.8rem;
-    }
-
     /* Install Button in Footer */
     .app-footer {
       text-align: center;
@@ -464,7 +453,7 @@
     <div class="calendar-header">
       <div class="month-nav">
         <button class="btn btn-outline" id="prev-month">‹</button>
-        <div class="current-month" id="current-month">Carregando...</div>
+        <div class="current-month" id="current-month">Novembro 2025</div>
         <button class="btn btn-outline" id="next-month">›</button>
       </div>
       <button class="btn btn-purple" id="today-btn">Hoje</button>
@@ -506,14 +495,14 @@
   </div>
 
   <script>
-    // Calendário Lunar com dados precisos - APENAS 4 FASES
+    // Calendário Lunar - APENAS ÍCONE NO PRIMEIRO DIA DE CADA FASE
     class MoonCalendar {
       constructor() {
         this.currentDate = new Date();
         this.selectedDate = new Date();
         this.notes = this.loadNotes();
         this.periodDays = this.loadPeriodDays();
-        this.moonPhasesCache = new Map();
+        this.currentPhase = null; // Para controlar mudanças de fase
         this.init();
       }
 
@@ -543,57 +532,51 @@
         this.saveNotesBtn.addEventListener('click', () => this.saveNotes());
       }
 
-      async renderCalendar() {
+      renderCalendar() {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
         
-        // Atualizar cabeçalho do mês
+        // Update month header
         const monthNames = [
           'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
         ];
         this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
 
-        // Obter primeiro dia do mês e total de dias
+        // Get first day of month and total days
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         const totalDays = lastDay.getDate();
         const startingDay = firstDay.getDay();
 
-        // Limpar calendário
+        // Clear calendar
         this.calendarDaysEl.innerHTML = '';
-        this.calendarDaysEl.classList.add('loading');
+        this.currentPhase = null; // Resetar fase atual
 
-        // Buscar fases da lua para este mês
-        const moonPhases = await this.getMoonPhasesForMonth(year, month + 1);
-
-        // Adicionar células vazias para dias antes do início do mês
+        // Add empty cells for days before month start
         for (let i = 0; i < startingDay; i++) {
           const prevMonthDay = new Date(year, month, -i);
           this.addDayCell(prevMonthDay, true);
         }
 
-        // Adicionar dias do mês atual
+        // Add days of current month
         const today = new Date();
         for (let day = 1; day <= totalDays; day++) {
           const date = new Date(year, month, day);
           const isToday = this.isSameDay(date, today);
-          const moonPhase = this.getMoonPhaseForDate(date, moonPhases);
-          this.addDayCell(date, false, isToday, moonPhase);
+          this.addDayCell(date, false, isToday);
         }
 
-        // Adicionar células vazias para dias após o fim do mês
-        const totalCells = 42; // 6 semanas
+        // Add empty cells for days after month end
+        const totalCells = 42; // 6 weeks
         const remainingCells = totalCells - (startingDay + totalDays);
         for (let i = 1; i <= remainingCells; i++) {
           const nextMonthDay = new Date(year, month + 1, i);
           this.addDayCell(nextMonthDay, true);
         }
-
-        this.calendarDaysEl.classList.remove('loading');
       }
 
-      addDayCell(date, isOtherMonth, isToday = false, moonPhase = null) {
+      addDayCell(date, isOtherMonth, isToday = false) {
         const dayEl = document.createElement('div');
         dayEl.className = 'day';
         if (isOtherMonth) dayEl.classList.add('other-month');
@@ -607,11 +590,18 @@
         }
 
         const dayNumber = date.getDate();
+        const moonPhase = this.getMoonPhase(date);
         const notes = this.getDayNotes(date);
         
+        // MOSTRAR ÍCONE APENAS NO PRIMEIRO DIA DE CADA FASE
+        const showMoon = this.currentPhase === null || moonPhase.phase !== this.currentPhase;
+        if (showMoon) {
+          this.currentPhase = moonPhase.phase;
+        }
+
         dayEl.innerHTML = `
           <div class="day-number">${dayNumber}</div>
-          ${moonPhase ? `
+          ${showMoon ? `
             <div class="moon-phase">${moonPhase.emoji}</div>
             <div class="moon-phase-name">${moonPhase.name}</div>
           ` : ''}
@@ -623,147 +613,54 @@
         this.calendarDaysEl.appendChild(dayEl);
       }
 
-      async getMoonPhasesForMonth(year, month) {
-        const cacheKey = `${year}-${month}`;
+      getMoonPhase(date) {
+        // CÁLCULO ASTRONÔMICO PRECISO - funciona para QUALQUER data
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
         
-        // Verificar cache primeiro
-        if (this.moonPhasesCache.has(cacheKey)) {
-          return this.moonPhasesCache.get(cacheKey);
-        }
-
-        try {
-          // Usar cálculo local mais preciso - APENAS 4 FASES
-          const moonPhases = this.calculateMoonPhasesForMonth(year, month);
-          
-          // Salvar no cache
-          this.moonPhasesCache.set(cacheKey, moonPhases);
-          return moonPhases;
-          
-        } catch (error) {
-          console.warn('Erro no cálculo lunar:', error);
-          return {};
+        // Conversão para Julian Date
+        let jd = this.calculateJulianDate(year, month, day);
+        
+        // Calcular fase lunar (0-1)
+        const phase = this.calculateLunarPhase(jd);
+        
+        // Converter para 4 fases principais
+        if (phase < 0.03 || phase > 0.97) {
+          return { emoji: '🌑', name: 'Lua Nova', phase: 0 };
+        } else if (phase < 0.47) {
+          return { emoji: '🌙', name: 'Crescente', phase: 1 };
+        } else if (phase < 0.53) {
+          return { emoji: '🌕', name: 'Lua Cheia', phase: 2 };
+        } else {
+          return { emoji: '🌜', name: 'Minguante', phase: 3 };
         }
       }
 
-      calculateMoonPhasesForMonth(year, month) {
-        const moonPhases = {};
-        const daysInMonth = new Date(year, month, 0).getDate();
-        
-        // DATAS EXATAS DAS FASES DA LUA PARA 2025-2026 (baseado nos seus dados)
-        const moonPhaseDates = {
-          // 2025
-          '2025-01-06': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-01-13': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-01-21': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-01-29': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-02-05': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-02-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-02-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-02-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-03-06': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-03-14': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-03-22': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-03-29': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-04-04': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-04-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-04-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-04-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-05-04': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-05-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-05-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-05-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-06-03': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-06-11': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-06-18': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-06-25': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-07-02': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-07-10': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-07-17': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-07-24': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-08-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-08-09': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-08-16': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-08-23': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-09-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-09-07': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-09-14': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-09-21': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-10-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          '2025-10-07': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-10-13': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-10-21': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          
-          '2025-11-05': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-11-12': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-11-20': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          '2025-11-28': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          
-          '2025-12-04': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2025-12-11': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2025-12-20': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          '2025-12-27': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          
-          // 2026 - baseado nos dados que você forneceu
-          '2026-01-03': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2026-01-10': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2026-01-18': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          '2026-01-26': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
-          
-          '2026-02-01': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
-          '2026-02-09': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
-          '2026-02-17': { emoji: '🌑', name: 'Nova', type: 'nova' },
-          '2026-02-24': { emoji: '🌙', name: 'Crescente', type: 'crescente' }
-        };
-
-        // Para cada dia do mês, determinar a fase da lua
-        for (let day = 1; day <= daysInMonth; day++) {
-          const date = new Date(year, month - 1, day);
-          const dateString = date.toISOString().split('T')[0];
-          
-          // Se é uma data exata de fase lunar
-          if (moonPhaseDates[dateString]) {
-            moonPhases[date.toDateString()] = moonPhaseDates[dateString];
-          } else {
-            // Para dias entre fases, determinar fase baseada na data mais próxima
-            moonPhases[date.toDateString()] = this.getPhaseForDate(date, moonPhaseDates);
-          }
+      calculateJulianDate(year, month, day) {
+        // Cálculo preciso da data juliana
+        if (month <= 2) {
+          year--;
+          month += 12;
         }
         
-        return moonPhases;
+        const a = Math.floor(year / 100);
+        const b = 2 - a + Math.floor(a / 4);
+        
+        return Math.floor(365.25 * (year + 4716)) + 
+               Math.floor(30.6001 * (month + 1)) + 
+               day + b - 1524.5;
       }
 
-      getPhaseForDate(date, moonPhaseDates) {
-        const dateString = date.toISOString().split('T')[0];
-        const dateTime = date.getTime();
+      calculateLunarPhase(jd) {
+        // Cálculo preciso da fase lunar
+        const newMoon2000 = 2451550.259;
+        const lunarCycle = 29.530588853;
         
-        // Encontrar a fase lunar mais próxima
-        let closestPhase = { emoji: '🌙', name: 'Lua', type: 'default' };
-        let minDiff = Infinity;
+        const daysSinceNewMoon = (jd - newMoon2000) % lunarCycle;
+        const positiveDays = daysSinceNewMoon < 0 ? daysSinceNewMoon + lunarCycle : daysSinceNewMoon;
         
-        for (const [phaseDateStr, phase] of Object.entries(moonPhaseDates)) {
-          const phaseDate = new Date(phaseDateStr);
-          const diff = Math.abs(dateTime - phaseDate.getTime());
-          
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestPhase = phase;
-          }
-        }
-        
-        return closestPhase;
-      }
-
-      getMoonPhaseForDate(date, moonPhases) {
-        return moonPhases[date.toDateString()] || { emoji: '🌙', name: 'Lua', type: 'default' };
+        return positiveDays / lunarCycle;
       }
 
       togglePeriodDay(dateString) {
@@ -900,7 +797,7 @@
         let message = '';
         
         if (isIOS) {
-          message = 'Para instalar este app:\n1. Toque no botão de compartilhar 📱\n2. Role para baixo\nn3. Toque em "Adicionar à Tela de Início"';
+          message = 'Para instalar este app:\n1. Toque no botão de compartilhar 📱\n2. Role para baixo\n3. Toque em "Adicionar à Tela de Início"';
         } else if (isAndroid) {
           message = 'Para instalar este app:\n1. Toque no menu (3 pontos) ⋮\n2. Toque em "Adicionar à tela inicial"\n3. Toque em "Adicionar"';
         } else {
