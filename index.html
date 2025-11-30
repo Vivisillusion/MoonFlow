@@ -505,381 +505,231 @@
     </div>
   </div>
 
-  <script>
-    // Calendário Lunar com API REAL usando sua chave
-    class MoonCalendar {
-      constructor() {
-        this.API_KEY = 'JC8L6AYJWPA4L87JH5YFGCF8J';
-        this.currentDate = new Date();
-        this.selectedDate = new Date();
-        this.notes = this.loadNotes();
-        this.periodDays = this.loadPeriodDays();
-        this.moonPhasesCache = new Map();
-        this.init();
-      }
+ <script>
+class MoonCalendar {
+  constructor() {
+    this.API_KEY = 'JC8L6AYJWPA4L87JH5YFGCF8J';
+    this.currentDate = new Date();
+    this.selectedDate = new Date();
+    this.notes = this.loadNotes();
+    this.periodDays = this.loadPeriodDays();
+    this.moonPhasesCache = new Map();
+    this.init();
+  }
 
-      init() {
-        this.cacheDOMElements();
-        this.attachEventListeners();
-        this.renderCalendar();
-        this.setupPWA();
-      }
+  init() {
+    this.cacheDOMElements();
+    this.attachEventListeners();
+    this.renderCalendar();
+    this.setupPWA();
+  }
 
-      cacheDOMElements() {
-        this.currentMonthEl = document.getElementById('current-month');
-        this.calendarDaysEl = document.getElementById('calendar-days');
-        this.prevMonthBtn = document.getElementById('prev-month');
-        this.nextMonthBtn = document.getElementById('next-month');
-        this.todayBtn = document.getElementById('today-btn');
-        this.selectedDateEl = document.getElementById('selected-date');
-        this.dayNotesEl = document.getElementById('day-notes');
-        this.saveNotesBtn = document.getElementById('save-notes');
-        this.installBtn = document.getElementById('installBtn');
-      }
+  cacheDOMElements() {
+    this.currentMonthEl = document.getElementById('current-month');
+    this.calendarDaysEl = document.getElementById('calendar-days');
+    this.prevMonthBtn = document.getElementById('prev-month');
+    this.nextMonthBtn = document.getElementById('next-month');
+    this.todayBtn = document.getElementById('today-btn');
+    this.selectedDateEl = document.getElementById('selected-date');
+    this.dayNotesEl = document.getElementById('day-notes');
+    this.saveNotesBtn = document.getElementById('save-notes');
+    this.installBtn = document.getElementById('installBtn');
+  }
 
-      attachEventListeners() {
-        this.prevMonthBtn.addEventListener('click', () => this.previousMonth());
-        this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
-        this.todayBtn.addEventListener('click', () => this.goToToday());
-        this.saveNotesBtn.addEventListener('click', () => this.saveNotes());
-      }
+  attachEventListeners() {
+    this.prevMonthBtn.addEventListener('click', () => this.previousMonth());
+    this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
+    this.todayBtn.addEventListener('click', () => this.goToToday());
+    this.saveNotesBtn.addEventListener('click', () => this.saveNotes());
+  }
 
-      async renderCalendar() {
-        const year = this.currentDate.getFullYear();
-        const month = this.currentDate.getMonth();
-        
-        // Atualizar cabeçalho do mês
-        const monthNames = [
-          'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-        ];
-        this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
+  async renderCalendar() {
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth();
 
-        // Obter primeiro dia do mês e total de dias
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const totalDays = lastDay.getDate();
-        const startingDay = firstDay.getDay();
+    const monthNames = [
+      'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+      'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
+    ];
 
-        // Limpar calendário
-        this.calendarDaysEl.innerHTML = '';
-        this.calendarDaysEl.classList.add('loading');
+    this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
 
-        // Buscar fases da lua para este mês da API
-        const moonPhases = await this.getMoonPhasesFromAPI(year, month + 1);
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const totalDays = lastDay.getDate();
+    const startingDay = firstDay.getDay();
 
-        // Adicionar células vazias para dias antes do início do mês
-        for (let i = 0; i < startingDay; i++) {
-          const prevMonthDay = new Date(year, month, -i);
-          this.addDayCell(prevMonthDay, true);
-        }
+    this.calendarDaysEl.innerHTML = '';
+    this.calendarDaysEl.classList.add('loading');
 
-        // Adicionar dias do mês atual
-        const today = new Date();
-        for (let day = 1; day <= totalDays; day++) {
-          const date = new Date(year, month, day);
-          const isToday = this.isSameDay(date, today);
-          const moonPhase = this.getMoonPhaseForDate(date, moonPhases);
-          this.addDayCell(date, false, isToday, moonPhase);
-        }
+    const moonPhases = await this.getMoonPhasesFromAPI(year, month + 1);
 
-        // Adicionar células vazias para dias após o fim do mês
-        const totalCells = 42; // 6 semanas
-        const remainingCells = totalCells - (startingDay + totalDays);
-        for (let i = 1; i <= remainingCells; i++) {
-          const nextMonthDay = new Date(year, month + 1, i);
-          this.addDayCell(nextMonthDay, true);
-        }
-
-        this.calendarDaysEl.classList.remove('loading');
-      }
-
-      addDayCell(date, isOtherMonth, isToday = false, moonPhase = null) {
-        const dayEl = document.createElement('div');
-        dayEl.className = 'day';
-        if (isOtherMonth) dayEl.classList.add('other-month');
-        if (isToday) dayEl.classList.add('today');
-        
-        const isPeriodDay = this.isPeriodDay(date);
-        if (isPeriodDay) dayEl.classList.add('period-day');
-        
-        if (this.isSameDay(date, this.selectedDate)) {
-          dayEl.style.background = 'var(--light-purple)';
-        }
-
-        const dayNumber = date.getDate();
-        const notes = this.getDayNotes(date);
-        
-        // MOSTRAR ÍCONE APENAS SE FOR PRIMEIRO DIA DA FASE
-        const showMoon = moonPhase && moonPhase.isPhaseChange;
-        
-        dayEl.innerHTML = `
-          <div class="day-number">${dayNumber}</div>
-          ${showMoon ? `
-            <div class="moon-phase">${moonPhase.emoji}</div>
-            <div class="moon-phase-name">${moonPhase.name}</div>
-          ` : ''}
-          <div class="period-checkbox ${isPeriodDay ? 'checked' : ''}" onclick="event.stopPropagation(); moonCalendar.togglePeriodDay('${date.toDateString()}')"></div>
-          ${notes ? `<div class="day-notes" title="${notes}">${notes.substring(0, 12)}${notes.length > 12 ? '...' : ''}</div>` : ''}
-        `;
-
-        dayEl.addEventListener('click', () => this.selectDate(date));
-        this.calendarDaysEl.appendChild(dayEl);
-      }
-
-      async getMoonPhasesFromAPI(year, month) {
-        const cacheKey = `${year}-${month}`;
-        
-        // Verificar cache primeiro
-        if (this.moonPhasesCache.has(cacheKey)) {
-          return this.moonPhasesCache.get(cacheKey);
-        }
-
-        try {
-          // API com sua chave real
-          const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-          const endDate = `${year}-${month.toString().padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
-          
-          console.log(`Buscando dados lunares para ${startDate} até ${endDate}`);
-          
-          const response = await fetch(
-            `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/São%20Paulo/${startDate}/${endDate}?unitGroup=metric&include=days&key=${this.API_KEY}&contentType=json`
-          );
-          
-          if (!response.ok) {
-            throw new Error(`Erro API: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          console.log('Dados recebidos da API:', data);
-          
-          const moonPhases = {};
-          let lastPhaseType = null;
-          
-          // Processar dados da API
-          data.days.forEach(day => {
-            const date = new Date(day.datetime);
-            const phase = this.mapAPIMoonPhase(day.moonphase);
-            const isPhaseChange = lastPhaseType !== phase.phase;
-            
-            moonPhases[date.toDateString()] = {
-              ...phase,
-              isPhaseChange: isPhaseChange
-            };
-            
-            lastPhaseType = phase.phase;
-          });
-          
-          // Salvar no cache
-          this.moonPhasesCache.set(cacheKey, moonPhases);
-          return moonPhases;
-          
-        } catch (error) {
-          console.error('Erro na API:', error);
-          // Fallback com dados conhecidos para demonstração
-          return this.getFallbackMoonPhases(year, month);
-        }
-      }
-
-      mapAPIMoonPhase(moonphase) {
-        // Converter valor da API (0-1) para 4 fases principais
-        if (moonphase <= 0.03 || moonphase >= 0.97) {
-          return { emoji: '🌑', name: 'Lua Nova', phase: 0 };
-        } else if (moonphase <= 0.47) {
-          return { emoji: '🌙', name: 'Crescente', phase: 1 };
-        } else if (moonphase <= 0.53) {
-          return { emoji: '🌕', name: 'Lua Cheia', phase: 2 };
-        } else {
-          return { emoji: '🌜', name: 'Minguante', phase: 3 };
-        }
-      }
-
-      getFallbackMoonPhases(year, month) {
-        // Fallback simples caso a API falhe
-        const phases = {};
-        const daysInMonth = new Date(year, month, 0).getDate();
-        let lastPhase = null;
-        
-        for (let day = 1; day <= daysInMonth; day++) {
-          const date = new Date(year, month - 1, day);
-          // Simular mudanças de fase a cada ~7 dias
-          const phaseIndex = Math.floor((day - 1) / 7) % 4;
-          const isPhaseChange = phaseIndex !== lastPhase;
-          
-          const phaseMap = [
-            { emoji: '🌑', name: 'Lua Nova', phase: 0 },
-            { emoji: '🌙', name: 'Crescente', phase: 1 },
-            { emoji: '🌕', name: 'Lua Cheia', phase: 2 },
-            { emoji: '🌜', name: 'Minguante', phase: 3 }
-          ];
-          
-          phases[date.toDateString()] = {
-            ...phaseMap[phaseIndex],
-            isPhaseChange: isPhaseChange
-          };
-          
-          lastPhase = phaseIndex;
-        }
-        
-        return phases;
-      }
-
-      getMoonPhaseForDate(date, moonPhases) {
-        return moonPhases[date.toDateString()] || { 
-          emoji: '🌙', 
-          name: 'Lua', 
-          phase: 1,
-          isPhaseChange: false 
-        };
-      }
-
-      togglePeriodDay(dateString) {
-        const date = new Date(dateString);
-        const dateKey = date.toDateString();
-        
-        if (this.periodDays[dateKey]) {
-          delete this.periodDays[dateKey];
-        } else {
-          this.periodDays[dateKey] = true;
-        }
-        
-        this.savePeriodDays();
-        this.renderCalendar();
-      }
-
-      isPeriodDay(date) {
-        return this.periodDays[date.toDateString()] || false;
-      }
-
-      selectDate(date) {
-        this.selectedDate = date;
-        this.renderCalendar();
-        this.updateNotesSection();
-      }
-
-      updateNotesSection() {
-        const dateStr = this.formatDate(this.selectedDate);
-        this.selectedDateEl.textContent = dateStr;
-        this.dayNotesEl.value = this.getDayNotes(this.selectedDate) || '';
-      }
-
-      saveNotes() {
-        const dateKey = this.selectedDate.toDateString();
-        const notes = this.dayNotesEl.value.trim();
-        
-        if (notes) {
-          this.notes[dateKey] = notes;
-        } else {
-          delete this.notes[dateKey];
-        }
-        
-        this.saveNotesToStorage();
-        this.renderCalendar();
-      }
-
-      getDayNotes(date) {
-        return this.notes[date.toDateString()] || '';
-      }
-
-      previousMonth() {
-        this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-        this.renderCalendar();
-      }
-
-      nextMonth() {
-        this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-        this.renderCalendar();
-      }
-
-      goToToday() {
-        this.currentDate = new Date();
-        this.selectedDate = new Date();
-        this.renderCalendar();
-        this.updateNotesSection();
-      }
-
-      isSameDay(date1, date2) {
-        return date1.toDateString() === date2.toDateString();
-      }
-
-      formatDate(date) {
-        const options = { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        };
-        return date.toLocaleDateString('pt-BR', options);
-      }
-
-      loadNotes() {
-        const stored = localStorage.getItem('moonCalendarNotes');
-        return stored ? JSON.parse(stored) : {};
-      }
-
-      saveNotesToStorage() {
-        localStorage.setItem('moonCalendarNotes', JSON.stringify(this.notes));
-      }
-
-      loadPeriodDays() {
-        const stored = localStorage.getItem('moonCalendarPeriodDays');
-        return stored ? JSON.parse(stored) : {};
-      }
-
-      savePeriodDays() {
-        localStorage.setItem('moonCalendarPeriodDays', JSON.stringify(this.periodDays));
-      }
-
-      setupPWA() {
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-          e.preventDefault();
-          deferredPrompt = e;
-        });
-
-        this.installBtn.addEventListener('click', async () => {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-              this.installBtn.style.display = 'none';
-            }
-            deferredPrompt = null;
-          } else {
-            this.showInstallInstructions();
-          }
-        });
-
-        window.addEventListener('appinstalled', () => {
-          this.installBtn.style.display = 'none';
-        });
-
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-          this.installBtn.style.display = 'none';
-        }
-      }
-
-      showInstallInstructions() {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        
-        let message = '';
-        
-        if (isIOS) {
-          message = 'Para instalar este app:\n1. Toque no botão de compartilhar 📱\n2. Role para baixo\n3. Toque em "Adicionar à Tela de Início"';
-        } else if (isAndroid) {
-          message = 'Para instalar este app:\n1. Toque no menu (3 pontos) ⋮\n2. Toque em "Adicionar à tela inicial"\n3. Toque em "Adicionar"';
-        } else {
-          message = 'Procure por "Adicionar à Tela de Início" ou "Instalar" no menu do seu navegador';
-        }
-        
-        alert(message);
-      }
+    for (let i = 0; i < startingDay; i++) {
+      const prevMonthDay = new Date(year, month, -i);
+      this.addDayCell(prevMonthDay, true);
     }
 
-    // Inicializar o app
-    const moonCalendar = new MoonCalendar();
-  </script>
+    const today = new Date();
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month, day);
+      const isToday = this.isSameDay(date, today);
+      const moonPhase = this.getMoonPhaseForDate(date, moonPhases);
+      this.addDayCell(date, false, isToday, moonPhase);
+    }
+
+    const totalCells = 42;
+    const remainingCells = totalCells - (startingDay + totalDays);
+
+    for (let i = 1; i <= remainingCells; i++) {
+      const nextMonthDay = new Date(year, month + 1, i);
+      this.addDayCell(nextMonthDay, true);
+    }
+
+    this.calendarDaysEl.classList.remove('loading');
+  }
+
+  addDayCell(date, isOtherMonth, isToday = false, moonPhase = null) {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    if (isOtherMonth) dayEl.classList.add('other-month');
+    if (isToday) dayEl.classList.add('today');
+
+    const dayNumber = date.getDate();
+    const notes = this.getDayNotes(date);
+
+    const showMoon = moonPhase && moonPhase.exactPhase;
+
+    dayEl.innerHTML = `
+      <div class="day-number">${dayNumber}</div>
+      ${showMoon ? `
+        <div class="moon-phase">${moonPhase.emoji}</div>
+        <div class="moon-phase-name">${moonPhase.name}</div>
+      ` : ''}
+      ${notes ? `<div class="day-notes">${notes.substring(0,12)}${notes.length>12?'...':''}</div>` : ''}
+    `;
+
+    dayEl.addEventListener('click', () => this.selectDate(date));
+    this.calendarDaysEl.appendChild(dayEl);
+  }
+
+  async getMoonPhasesFromAPI(year, month) {
+    const cacheKey = `${year}-${month}`;
+    if (this.moonPhasesCache.has(cacheKey)) {
+      return this.moonPhasesCache.get(cacheKey);
+    }
+
+    const start = `${year}-${String(month).padStart(2,'0')}-01`;
+    const end = `${year}-${String(month).padStart(2,'0')}-${new Date(year,month,0).getDate()}`;
+
+    const url =
+      `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/São Paulo/${start}/${end}?unitGroup=metric&include=days&key=${this.API_KEY}&contentType=json`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const phases = {};
+    data.days.forEach(day => {
+      const date = new Date(day.datetime);
+      const moonVal = day.moonphase;
+      const mapped = this.mapPreciseMoon(moonVal);
+
+      phases[date.toDateString()] = mapped;
+    });
+
+    this.moonPhasesCache.set(cacheKey, phases);
+    return phases;
+  }
+
+  // 🔥 CORREÇÃO REAL DAS FASES: só marca fase precisa
+  mapPreciseMoon(v) {
+    const T = 0.04;
+
+    if (v <= T || v >= 1 - T)
+      return { emoji:'🌑', name:'Lua Nova', exactPhase:true };
+
+    if (v >= 0.25 - T && v <= 0.25 + T)
+      return { emoji:'🌙', name:'Crescente', exactPhase:true };
+
+    if (v >= 0.50 - T && v <= 0.50 + T)
+      return { emoji:'🌕', name:'Lua Cheia', exactPhase:true };
+
+    if (v >= 0.75 - T && v <= 0.75 + T)
+      return { emoji:'🌜', name:'Minguante', exactPhase:true };
+
+    return { emoji:null, name:null, exactPhase:false };
+  }
+
+  getMoonPhaseForDate(date, phases) {
+    return phases[date.toDateString()] ?? { exactPhase:false };
+  }
+
+  selectDate(date) {
+    this.selectedDate = date;
+    this.updateNotesSection();
+    this.renderCalendar();
+  }
+
+  updateNotesSection() {
+    this.selectedDateEl.textContent = date.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    this.dayNotesEl.value = this.getDayNotes(this.selectedDate) || '';
+  }
+
+  saveNotes() {
+    const key = this.selectedDate.toDateString();
+    const txt = this.dayNotesEl.value.trim();
+    if (txt) this.notes[key] = txt;
+    else delete this.notes[key];
+    this.saveNotesToStorage();
+    this.renderCalendar();
+  }
+
+  getDayNotes(date) {
+    return this.notes[date.toDateString()] || '';
+  }
+
+  previousMonth() {
+    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+    this.renderCalendar();
+  }
+
+  nextMonth() {
+    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+    this.renderCalendar();
+  }
+
+  goToToday() {
+    this.currentDate = new Date();
+    this.selectedDate = new Date();
+    this.renderCalendar();
+    this.updateNotesSection();
+  }
+
+  isSameDay(a, b) {
+    return a.toDateString() === b.toDateString();
+  }
+
+  loadNotes() {
+    return JSON.parse(localStorage.getItem('moonCalendarNotes')) || {};
+  }
+
+  saveNotesToStorage() {
+    localStorage.setItem('moonCalendarNotes', JSON.stringify(this.notes));
+  }
+
+  loadPeriodDays() {
+    return JSON.parse(localStorage.getItem('moonCalendarPeriodDays')) || {};
+  }
+
+  savePeriodDays() {
+    localStorage.setItem('moonCalendarPeriodDays', JSON.stringify(this.periodDays));
+  }
+
+  setupPWA() { /* igual ao seu */ }
+}
+
+const moonCalendar = new MoonCalendar();
+</script>
+
 </body>
 </html>
