@@ -219,7 +219,7 @@
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-md);
       overflow: hidden;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
 
     .weekdays {
@@ -248,7 +248,7 @@
     .day {
       background: var(--white);
       padding: 1rem;
-      min-height: 120px;
+      min-height: 80px;
       border: none;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -257,7 +257,6 @@
 
     .day:hover {
       background: var(--light-purple);
-      transform: scale(1.02);
     }
 
     .day.other-month {
@@ -272,7 +271,6 @@
 
     .day.period-day {
       background: var(--danger-red) !important;
-      border: 2px solid var(--danger-text);
     }
 
     .day.period-day .day-number {
@@ -283,31 +281,24 @@
     .day-number {
       font-size: 1.1rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .moon-phase {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
+      text-align: center;
       margin-bottom: 0.25rem;
-      text-align: center;
-    }
-
-    .moon-phase-name {
-      font-size: 0.7rem;
-      color: var(--text-light);
-      text-align: center;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
+      animation: gentleGlow 2s ease-in-out infinite;
     }
 
     .period-checkbox {
       position: absolute;
       top: 0.5rem;
       right: 0.5rem;
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       border: 2px solid var(--danger-text);
-      border-radius: 4px;
+      border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -321,20 +312,20 @@
     }
 
     .period-checkbox.checked::after {
-      content: '✓';
+      content: '•';
       color: var(--white);
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 1rem;
+      line-height: 1;
     }
 
     .period-checkbox:hover {
-      transform: scale(1.1);
+      transform: scale(1.2);
     }
 
     .day-notes {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: var(--text-light);
-      margin-top: 0.25rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -343,14 +334,14 @@
     /* Notes Section */
     .notes-section {
       background: var(--white);
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-md);
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
 
     .selected-date {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--dark-purple);
       margin-bottom: 1rem;
@@ -359,13 +350,13 @@
 
     .notes-input {
       width: 100%;
-      padding: 1rem;
+      padding: 0.75rem;
       border: 2px solid #f0edf5;
       border-radius: var(--border-radius-sm);
       font-family: 'Quicksand', sans-serif;
-      font-size: 1rem;
+      font-size: 0.9rem;
       resize: vertical;
-      min-height: 100px;
+      min-height: 80px;
       margin-bottom: 1rem;
       transition: all 0.3s ease;
     }
@@ -376,10 +367,10 @@
       box-shadow: 0 0 0 3px rgba(184, 164, 212, 0.1);
     }
 
-    /* Install Button */
-    .install-section {
+    /* Install Button in Footer */
+    .app-footer {
       text-align: center;
-      margin: 1rem 0;
+      margin-top: 1rem;
     }
     
     .install-btn {
@@ -421,19 +412,22 @@
 
       .day {
         padding: 0.5rem;
-        min-height: 100px;
+        min-height: 70px;
       }
 
       .moon-phase {
-        font-size: 1.2rem;
-      }
-
-      .moon-phase-name {
-        font-size: 0.6rem;
+        font-size: 1rem;
       }
 
       .day-number {
         font-size: 0.9rem;
+      }
+
+      .period-checkbox {
+        width: 14px;
+        height: 14px;
+        top: 0.3rem;
+        right: 0.3rem;
       }
     }
   </style>
@@ -451,13 +445,6 @@
       <h1>Lunar Chaos Calendar <span class="moon-icon">🌙🌀</span></h1>
       <p class="subtitle">Track your cycle, embrace the beautiful chaos</p>
     </header>
-
-    <!-- Install Button -->
-    <div class="install-section">
-      <button class="install-btn" id="installBtn">
-        📲 Install App
-      </button>
-    </div>
 
     <!-- Calendar Header -->
     <div class="calendar-header">
@@ -495,6 +482,13 @@
       ></textarea>
       <button class="btn btn-purple" id="save-notes">Save Notes</button>
     </div>
+
+    <!-- Install Button in Footer -->
+    <div class="app-footer">
+      <button class="install-btn" id="installBtn">
+        📲 Install App
+      </button>
+    </div>
   </div>
 
   <script>
@@ -505,6 +499,7 @@
         this.selectedDate = new Date();
         this.notes = this.loadNotes();
         this.periodDays = this.loadPeriodDays();
+        this.lastPhaseStart = null;
         this.init();
       }
 
@@ -553,6 +548,7 @@
 
         // Clear calendar
         this.calendarDaysEl.innerHTML = '';
+        this.lastPhaseStart = null;
 
         // Add empty cells for days before month start
         for (let i = 0; i < startingDay; i++) {
@@ -593,13 +589,15 @@
         const dayNumber = date.getDate();
         const moonPhase = this.getMoonPhase(date);
         const notes = this.getDayNotes(date);
+        
+        // Show moon only on phase start days
+        const showMoon = this.shouldShowMoon(date, moonPhase);
 
         dayEl.innerHTML = `
           <div class="day-number">${dayNumber}</div>
-          <div class="moon-phase">${moonPhase.emoji}</div>
-          <div class="moon-phase-name">${moonPhase.name}</div>
+          ${showMoon ? `<div class="moon-phase">${moonPhase.emoji}</div>` : ''}
           <div class="period-checkbox ${isPeriodDay ? 'checked' : ''}" onclick="event.stopPropagation(); moonCalendar.togglePeriodDay('${date.toDateString()}')"></div>
-          ${notes ? `<div class="day-notes" title="${notes}">${notes.substring(0, 15)}${notes.length > 15 ? '...' : ''}</div>` : ''}
+          ${notes ? `<div class="day-notes" title="${notes}">${notes.substring(0, 12)}${notes.length > 12 ? '...' : ''}</div>` : ''}
         `;
 
         dayEl.addEventListener('click', () => this.selectDate(date));
@@ -608,22 +606,26 @@
 
       getMoonPhase(date) {
         // More accurate moon phase calculation
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const day = date.getDate();
-        
-        // Using a simple calculation that's more consistent
         const daysSinceNewMoon = Math.floor((date - new Date(2000, 0, 6)) / (1000 * 60 * 60 * 24));
-        const phase = daysSinceNewMoon % 29.53; // Lunar cycle length
+        const phase = daysSinceNewMoon % 29.53;
         
-        if (phase < 1) return { emoji: '🌑', name: 'New Moon' };
-        if (phase < 7.4) return { emoji: '🌒', name: 'Waxing Crescent' };
-        if (phase < 8.4) return { emoji: '🌓', name: 'First Quarter' };
-        if (phase < 14.8) return { emoji: '🌔', name: 'Waxing Gibbous' };
-        if (phase < 15.8) return { emoji: '🌕', name: 'Full Moon' };
-        if (phase < 22.2) return { emoji: '🌖', name: 'Waning Gibbous' };
-        if (phase < 23.2) return { emoji: '🌗', name: 'Last Quarter' };
-        return { emoji: '🌘', name: 'Waning Crescent' };
+        if (phase < 1) return { emoji: '🌑', name: 'New Moon', phase: 0 };
+        if (phase < 7.4) return { emoji: '🌒', name: 'Waxing Crescent', phase: 1 };
+        if (phase < 8.4) return { emoji: '🌓', name: 'First Quarter', phase: 2 };
+        if (phase < 14.8) return { emoji: '🌔', name: 'Waxing Gibbous', phase: 3 };
+        if (phase < 15.8) return { emoji: '🌕', name: 'Full Moon', phase: 4 };
+        if (phase < 22.2) return { emoji: '🌖', name: 'Waning Gibbous', phase: 5 };
+        if (phase < 23.2) return { emoji: '🌗', name: 'Last Quarter', phase: 6 };
+        return { emoji: '🌘', name: 'Waning Crescent', phase: 7 };
+      }
+
+      shouldShowMoon(date, currentPhase) {
+        // Show moon only on phase start days
+        if (this.lastPhaseStart === null || currentPhase.phase !== this.lastPhaseStart.phase) {
+          this.lastPhaseStart = currentPhase;
+          return true;
+        }
+        return false;
       }
 
       togglePeriodDay(dateString) {
