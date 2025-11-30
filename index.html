@@ -248,7 +248,7 @@
     .day {
       background: var(--white);
       padding: 1rem;
-      min-height: 80px;
+      min-height: 100px;
       border: none;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -285,10 +285,18 @@
     }
 
     .moon-phase {
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       text-align: center;
       margin-bottom: 0.25rem;
       animation: gentleGlow 2s ease-in-out infinite;
+    }
+
+    .moon-phase-name {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
     }
 
     .period-checkbox {
@@ -412,11 +420,11 @@
 
       .day {
         padding: 0.5rem;
-        min-height: 70px;
+        min-height: 90px;
       }
 
       .moon-phase {
-        font-size: 1rem;
+        font-size: 1.3rem;
       }
 
       .day-number {
@@ -499,7 +507,7 @@
         this.selectedDate = new Date();
         this.notes = this.loadNotes();
         this.periodDays = this.loadPeriodDays();
-        this.lastPhaseStart = null;
+        this.lastPhase = null;
         this.init();
       }
 
@@ -548,7 +556,7 @@
 
         // Clear calendar
         this.calendarDaysEl.innerHTML = '';
-        this.lastPhaseStart = null;
+        this.lastPhase = null;
 
         // Add empty cells for days before month start
         for (let i = 0; i < startingDay; i++) {
@@ -590,12 +598,18 @@
         const moonPhase = this.getMoonPhase(date);
         const notes = this.getDayNotes(date);
         
-        // Show moon only on phase start days
-        const showMoon = this.shouldShowMoon(date, moonPhase);
+        // Show moon only when phase changes
+        const showMoon = this.lastPhase === null || moonPhase.phase !== this.lastPhase.phase;
+        if (showMoon) {
+          this.lastPhase = moonPhase;
+        }
 
         dayEl.innerHTML = `
           <div class="day-number">${dayNumber}</div>
-          ${showMoon ? `<div class="moon-phase">${moonPhase.emoji}</div>` : ''}
+          ${showMoon ? `
+            <div class="moon-phase">${moonPhase.emoji}</div>
+            <div class="moon-phase-name">${moonPhase.name}</div>
+          ` : ''}
           <div class="period-checkbox ${isPeriodDay ? 'checked' : ''}" onclick="event.stopPropagation(); moonCalendar.togglePeriodDay('${date.toDateString()}')"></div>
           ${notes ? `<div class="day-notes" title="${notes}">${notes.substring(0, 12)}${notes.length > 12 ? '...' : ''}</div>` : ''}
         `;
@@ -605,27 +619,14 @@
       }
 
       getMoonPhase(date) {
-        // More accurate moon phase calculation
+        // Simple 4-phase moon calculation
         const daysSinceNewMoon = Math.floor((date - new Date(2000, 0, 6)) / (1000 * 60 * 60 * 24));
-        const phase = daysSinceNewMoon % 29.53;
+        const phase = (daysSinceNewMoon % 29.53) / 29.53; // 0 to 1
         
-        if (phase < 1) return { emoji: '🌑', name: 'New Moon', phase: 0 };
-        if (phase < 7.4) return { emoji: '🌒', name: 'Waxing Crescent', phase: 1 };
-        if (phase < 8.4) return { emoji: '🌓', name: 'First Quarter', phase: 2 };
-        if (phase < 14.8) return { emoji: '🌔', name: 'Waxing Gibbous', phase: 3 };
-        if (phase < 15.8) return { emoji: '🌕', name: 'Full Moon', phase: 4 };
-        if (phase < 22.2) return { emoji: '🌖', name: 'Waning Gibbous', phase: 5 };
-        if (phase < 23.2) return { emoji: '🌗', name: 'Last Quarter', phase: 6 };
-        return { emoji: '🌘', name: 'Waning Crescent', phase: 7 };
-      }
-
-      shouldShowMoon(date, currentPhase) {
-        // Show moon only on phase start days
-        if (this.lastPhaseStart === null || currentPhase.phase !== this.lastPhaseStart.phase) {
-          this.lastPhaseStart = currentPhase;
-          return true;
-        }
-        return false;
+        if (phase < 0.03 || phase > 0.97) return { emoji: '🌑', name: 'New Moon', phase: 0 };
+        if (phase < 0.47) return { emoji: '🌙', name: 'Waxing', phase: 1 };
+        if (phase < 0.53) return { emoji: '🌕', name: 'Full Moon', phase: 2 };
+        return { emoji: '🌜', name: 'Waning', phase: 3 };
       }
 
       togglePeriodDay(dateString) {
