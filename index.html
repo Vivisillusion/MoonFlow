@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendário Lunar Caótico 🌙🌀</title>
+  <title>Lunar Chaos Calendar 🌙🌀</title>
   
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#b8a4d4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Calendário Lunar">
+  <meta name="apple-mobile-web-app-title" content="Lunar Calendar">
   
   <style>
     /* ===================================
-       SEU CSS ORIGINAL (mantido igual)
+       YOUR ORIGINAL CSS (kept the same)
        =================================== */
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
 
@@ -426,30 +426,30 @@
   <div class="container">
     <!-- Header -->
     <header>
-      <h1>Calendário Lunar Caótico <span class="moon-icon">🌙🌀</span></h1>
-      <p class="subtitle">Acompanhe seu ciclo, abrace o caos lunar</p>
+      <h1>Lunar Chaos Calendar <span class="moon-icon">🌙🌀</span></h1>
+      <p class="subtitle">Track your cycle, embrace the beautiful chaos</p>
     </header>
 
     <!-- Calendar Header -->
     <div class="calendar-header">
       <div class="month-nav">
         <button class="btn btn-outline" id="prev-month">‹</button>
-        <div class="current-month" id="current-month">Novembro 2025</div>
+        <div class="current-month" id="current-month">November 2025</div>
         <button class="btn btn-outline" id="next-month">›</button>
       </div>
-      <button class="btn btn-purple" id="today-btn">Hoje</button>
+      <button class="btn btn-purple" id="today-btn">Today</button>
     </div>
 
     <!-- Calendar Grid -->
     <div class="calendar-grid">
       <div class="weekdays">
-        <div class="weekday">Dom</div>
-        <div class="weekday">Seg</div>
-        <div class="weekday">Ter</div>
-        <div class="weekday">Qua</div>
-        <div class="weekday">Qui</div>
-        <div class="weekday">Sex</div>
-        <div class="weekday">Sáb</div>
+        <div class="weekday">Sun</div>
+        <div class="weekday">Mon</div>
+        <div class="weekday">Tue</div>
+        <div class="weekday">Wed</div>
+        <div class="weekday">Thu</div>
+        <div class="weekday">Fri</div>
+        <div class="weekday">Sat</div>
       </div>
       <div class="days-grid" id="calendar-days">
         <!-- Calendar days will be generated here -->
@@ -458,25 +458,25 @@
 
     <!-- Notes Section -->
     <div class="notes-section">
-      <div class="selected-date" id="selected-date">Selecione um dia para adicionar notas</div>
+      <div class="selected-date" id="selected-date">Select a day to add notes</div>
       <textarea 
         class="notes-input" 
         id="day-notes" 
-        placeholder="Adicione notas para este dia..."
+        placeholder="Add notes for this day..."
       ></textarea>
-      <button class="btn btn-purple" id="save-notes">Salvar Notas</button>
+      <button class="btn btn-purple" id="save-notes">Save Notes</button>
     </div>
 
     <!-- Install Button in Footer -->
     <div class="app-footer">
       <button class="install-btn" id="installBtn">
-        📲 Instalar App
+        📲 Install App
       </button>
     </div>
   </div>
 
   <script>
-    // Calendário SIMPLES - sem API, sem fases da lua
+    // SIMPLE Calendar - no API, no moon phases
     class SimpleCalendar {
       constructor() {
         this.currentDate = new Date();
@@ -516,29 +516,29 @@
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
         
-        // Atualizar cabeçalho do mês
+        // Update month header
         const monthNames = [
-          'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
         ];
         this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
 
-        // Obter primeiro dia do mês e total de dias
+        // Get first day of month and total days
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         const totalDays = lastDay.getDate();
         const startingDay = firstDay.getDay();
 
-        // Limpar calendário
+        // Clear calendar
         this.calendarDaysEl.innerHTML = '';
 
-        // Adicionar células vazias para dias antes do início do mês
+        // Add empty cells for days before month start
         for (let i = 0; i < startingDay; i++) {
           const prevMonthDay = new Date(year, month, -i);
           this.addDayCell(prevMonthDay, true);
         }
 
-        // Adicionar dias do mês atual
+        // Add days of current month
         const today = new Date();
         for (let day = 1; day <= totalDays; day++) {
           const date = new Date(year, month, day);
@@ -546,8 +546,8 @@
           this.addDayCell(date, false, isToday);
         }
 
-        // Adicionar células vazias para dias após o fim do mês
-        const totalCells = 42; // 6 semanas
+        // Add empty cells for days after month end
+        const totalCells = 42; // 6 weeks
         const remainingCells = totalCells - (startingDay + totalDays);
         for (let i = 1; i <= remainingCells; i++) {
           const nextMonthDay = new Date(year, month + 1, i);
@@ -657,7 +657,7 @@
           month: 'long', 
           day: 'numeric' 
         };
-        return date.toLocaleDateString('pt-BR', options);
+        return date.toLocaleDateString('en-US', options);
       }
 
       loadNotes() {
@@ -715,18 +715,18 @@
         let message = '';
         
         if (isIOS) {
-          message = 'Para instalar este app:\n1. Toque no botão de compartilhar 📱\n2. Role para baixo\n3. Toque em "Adicionar à Tela de Início"';
+          message = 'To install this app:\n1. Tap the share button 📱\n2. Scroll down\n3. Tap "Add to Home Screen"';
         } else if (isAndroid) {
-          message = 'Para instalar este app:\n1. Toque no menu (3 pontos) ⋮\n2. Toque em "Adicionar à tela inicial"\n3. Toque em "Adicionar"';
+          message = 'To install this app:\n1. Tap the menu (3 dots) ⋮\n2. Tap "Add to Home Screen"\n3. Tap "Add"';
         } else {
-          message = 'Procure por "Adicionar à Tela de Início" ou "Instalar" no menu do seu navegador';
+          message = 'Look for "Add to Home Screen" or "Install" in your browser menu';
         }
         
         alert(message);
       }
     }
 
-    // Inicializar o app
+    // Initialize the app
     const simpleCalendar = new SimpleCalendar();
   </script>
 </body>
