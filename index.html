@@ -3,23 +3,350 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chaos To-Do List ✨</title>
+  <title>LunaFlow 🌙</title>
   
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#b8a4d4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Chaos To-Do">
+  <meta name="apple-mobile-web-app-title" content="LunaFlow">
   
   <!-- App Icons -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌀</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌀</text></svg>">
-  
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌙</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌙</text></svg>">
   
   <style>
-    /* Install Button Styles */
+    /* ===================================
+       CHAOS TO-DO LIST STYLES (Your beautiful CSS)
+       =================================== */
+
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+
+    :root {
+      --bg-color: #f5f3f0;
+      --primary-purple: #b8a4d4;
+      --dark-purple: #3d2e52;
+      --light-purple: #e8dfff;
+      --accent-yellow: #ffc97d;
+      --white: #ffffff;
+      --text-dark: #2d2838;
+      --text-light: #6b6578;
+      --success-green: #d4f1e8;
+      --success-text: #2d5f4d;
+      --danger-red: #ffd4d4;
+      --danger-text: #7d2d2d;
+      --warning-orange: #ffe8d4;
+      --warning-text: #7d4d2d;
+      --border-radius: 16px;
+      --border-radius-sm: 12px;
+      --border-radius-pill: 999px;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 2rem 1rem;
+    }
+
+    .sparkle {
+      position: fixed;
+      font-size: 2rem;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .sparkle-1 {
+      top: 10%;
+      left: 5%;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .sparkle-2 {
+      top: 20%;
+      right: 8%;
+      animation: float 4s ease-in-out infinite 1s;
+    }
+
+    .sparkle-3 {
+      bottom: 15%;
+      left: 10%;
+      animation: float 3.5s ease-in-out infinite 0.5s;
+    }
+
+    .sparkle-4 {
+      bottom: 25%;
+      right: 5%;
+      animation: float 4.5s ease-in-out infinite 1.5s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      color: var(--dark-purple);
+      margin-bottom: 0.5rem;
+    }
+
+    .moon-icon {
+      display: inline-block;
+      animation: gentleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes gentleGlow {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+
+    /* Calendar Styles */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+    }
+
+    .month-nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: var(--border-radius-pill);
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .btn-purple {
+      background-color: var(--primary-purple);
+      color: var(--white);
+    }
+
+    .btn-purple:hover {
+      background-color: #a590c4;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(184, 164, 212, 0.4);
+    }
+
+    .btn-outline {
+      background-color: var(--white);
+      color: var(--dark-purple);
+      border: 2px solid var(--primary-purple);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--light-purple);
+      transform: translateY(-2px);
+    }
+
+    .current-month {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark-purple);
+      text-align: center;
+    }
+
+    .calendar-grid {
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--light-purple);
+      font-weight: 600;
+      color: var(--dark-purple);
+    }
+
+    .weekday {
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #f0edf5;
+    }
+
+    .day {
+      background: var(--white);
+      padding: 1rem;
+      min-height: 100px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .day:hover {
+      background: var(--light-purple);
+      transform: scale(1.02);
+    }
+
+    .day.other-month {
+      color: var(--text-light);
+      opacity: 0.5;
+    }
+
+    .day.today {
+      background: var(--accent-yellow);
+      font-weight: 700;
+    }
+
+    .day-number {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .moon-phase {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .period-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--danger-text);
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+
+    .fertile-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success-text);
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+
+    .day-notes {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Notes Section */
+    .notes-section {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+    }
+
+    .selected-date {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--dark-purple);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .notes-input {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #f0edf5;
+      border-radius: var(--border-radius-sm);
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .notes-input:focus {
+      outline: none;
+      border-color: var(--primary-purple);
+      box-shadow: 0 0 0 3px rgba(184, 164, 212, 0.1);
+    }
+
+    /* Install Button */
     .install-section {
       text-align: center;
       margin: 1rem 0;
@@ -46,24 +373,33 @@
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
-    
-    /* Status bar for mobile */
-    .status-bar {
-      display: none;
-      background: var(--white);
-      padding: 0.75rem 1rem;
-      border-radius: var(--border-radius-sm);
-      box-shadow: var(--shadow-sm);
-      margin-top: 1rem;
-      font-size: 0.8rem;
-      color: var(--text-light);
-      justify-content: space-between;
-      align-items: center;
-    }
-    
+
     @media (max-width: 768px) {
-      .status-bar {
-        display: flex;
+      body {
+        padding: 1rem 0.5rem;
+      }
+
+      .calendar-header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .month-nav {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .day {
+        padding: 0.5rem;
+        min-height: 80px;
+      }
+
+      .moon-phase {
+        font-size: 1.2rem;
+      }
+
+      .day-number {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -78,8 +414,8 @@
   <div class="container">
     <!-- Header -->
     <header>
-      <h1>Chaos To-Do List <span class="chaos-icon">🌀</span></h1>
-      <p class="subtitle">Organize your beautiful chaos</p>
+      <h1>LunaFlow <span class="moon-icon">🌙</span></h1>
+      <p class="subtitle">Track your cycle with the rhythm of the moon</p>
     </header>
 
     <!-- Install Button -->
@@ -89,160 +425,313 @@
       </button>
     </div>
 
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat-card">
-        <span class="stat-number" id="total-tasks">0</span>
-        <span class="stat-label">Total Tasks</span>
+    <!-- Calendar Header -->
+    <div class="calendar-header">
+      <div class="month-nav">
+        <button class="btn btn-outline" id="prev-month">‹</button>
+        <div class="current-month" id="current-month">November 2025</div>
+        <button class="btn btn-outline" id="next-month">›</button>
       </div>
-      <div class="stat-card">
-        <span class="stat-number" id="completed-tasks">0</span>
-        <span class="stat-label">Completed</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-number" id="remaining-tasks">0</span>
-        <span class="stat-label">Remaining</span>
-      </div>
+      <button class="btn btn-purple" id="today-btn">Today</button>
     </div>
 
-    <!-- Add Task Form -->
-    <div class="add-task-section">
-      <div class="input-group">
-        <input 
-          type="text" 
-          id="task-input" 
-          placeholder="What needs to be done?" 
-          maxlength="200"
-        />
-        <select id="priority-select">
-          <option value="low">Low Priority</option>
-          <option value="medium" selected>Medium Priority</option>
-          <option value="high">High Priority</option>
-        </select>
-        <button id="add-task-btn" class="btn btn-purple">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Add Task
-        </button>
+    <!-- Calendar Grid -->
+    <div class="calendar-grid">
+      <div class="weekdays">
+        <div class="weekday">Sun</div>
+        <div class="weekday">Mon</div>
+        <div class="weekday">Tue</div>
+        <div class="weekday">Wed</div>
+        <div class="weekday">Thu</div>
+        <div class="weekday">Fri</div>
+        <div class="weekday">Sat</div>
+      </div>
+      <div class="days-grid" id="calendar-days">
+        <!-- Calendar days will be generated here -->
       </div>
     </div>
 
-    <!-- Filter buttons -->
-    <div class="filter-section">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="active">Active</button>
-      <button class="filter-btn" data-filter="completed">Completed</button>
-      <button class="filter-btn" data-filter="high">High Priority</button>
-    </div>
-
-    <!-- Tasks List -->
-    <div class="tasks-container">
-      <div id="tasks-list"></div>
-      
-      <!-- Empty state -->
-      <div id="empty-state" class="empty-state">
-        <div class="empty-icon">🎯</div>
-        <h3>No tasks yet!</h3>
-        <p>Add your first task to tame the chaos</p>
-      </div>
-    </div>
-
-    <!-- Clear completed button -->
-    <div class="actions">
-      <button id="clear-completed-btn" class="btn btn-outline">
-        Clear Completed Tasks
-      </button>
-    </div>
-
-    <!-- Mobile Status Bar -->
-    <div class="status-bar">
-      <span id="status-text">Ready</span>
-      <span id="task-count">0 tasks</span>
+    <!-- Notes Section -->
+    <div class="notes-section">
+      <div class="selected-date" id="selected-date">Select a day to add notes</div>
+      <textarea 
+        class="notes-input" 
+        id="day-notes" 
+        placeholder="Add notes for this day..."
+      ></textarea>
+      <button class="btn btn-purple" id="save-notes">Save Notes</button>
     </div>
   </div>
 
   <script>
-    // PWA Installation
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-
-    // Listen for beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-
-    // Install button click handler
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          installBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        showInstallInstructions();
+    // Moon Phase Calendar App
+    class MoonCalendar {
+      constructor() {
+        this.currentDate = new Date();
+        this.selectedDate = new Date();
+        this.notes = this.loadNotes();
+        this.cycleData = this.loadCycleData();
+        this.init();
       }
-    });
 
-    // Hide install button if already installed
-    window.addEventListener('appinstalled', () => {
-      installBtn.style.display = 'none';
-    });
-
-    // Check if already in standalone mode
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      installBtn.style.display = 'none';
-    }
-
-    // Fallback install instructions
-    function showInstallInstructions() {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
-      
-      let message = '';
-      
-      if (isIOS) {
-        message = 'To install this app:\n1. Tap the share button 📱\n2. Scroll down\n3. Tap "Add to Home Screen"';
-      } else if (isAndroid) {
-        message = 'To install this app:\n1. Tap the menu (3 dots) ⋮\n2. Tap "Add to Home Screen"\n3. Tap "Add"';
-      } else {
-        message = 'Look for "Add to Home Screen" or "Install" in your browser menu';
+      init() {
+        this.cacheDOMElements();
+        this.attachEventListeners();
+        this.renderCalendar();
+        this.setupPWA();
       }
-      
-      alert(message);
-    }
 
-    // Update mobile status bar
-    function updateStatusBar() {
-      const statusText = document.getElementById('status-text');
-      const taskCount = document.getElementById('task-count');
-      
-      if (app && app.tasks) {
-        const total = app.tasks.length;
-        const completed = app.tasks.filter(t => t.completed).length;
-        taskCount.textContent = `${total} task${total !== 1 ? 's' : ''}`;
+      cacheDOMElements() {
+        this.currentMonthEl = document.getElementById('current-month');
+        this.calendarDaysEl = document.getElementById('calendar-days');
+        this.prevMonthBtn = document.getElementById('prev-month');
+        this.nextMonthBtn = document.getElementById('next-month');
+        this.todayBtn = document.getElementById('today-btn');
+        this.selectedDateEl = document.getElementById('selected-date');
+        this.dayNotesEl = document.getElementById('day-notes');
+        this.saveNotesBtn = document.getElementById('save-notes');
+        this.installBtn = document.getElementById('installBtn');
+      }
+
+      attachEventListeners() {
+        this.prevMonthBtn.addEventListener('click', () => this.previousMonth());
+        this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
+        this.todayBtn.addEventListener('click', () => this.goToToday());
+        this.saveNotesBtn.addEventListener('click', () => this.saveNotes());
+      }
+
+      renderCalendar() {
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
         
-        if (completed === total && total > 0) {
-          statusText.textContent = 'All done! 🎉';
-        } else if (completed > 0) {
-          statusText.textContent = `${completed}/${total} done`;
-        } else {
-          statusText.textContent = 'Ready';
+        // Update month header
+        const monthNames = [
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
+
+        // Get first day of month and total days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const totalDays = lastDay.getDate();
+        const startingDay = firstDay.getDay();
+
+        // Clear calendar
+        this.calendarDaysEl.innerHTML = '';
+
+        // Add empty cells for days before month start
+        for (let i = 0; i < startingDay; i++) {
+          const prevMonthDay = new Date(year, month, -i);
+          this.addDayCell(prevMonthDay, true);
         }
+
+        // Add days of current month
+        const today = new Date();
+        for (let day = 1; day <= totalDays; day++) {
+          const date = new Date(year, month, day);
+          const isToday = this.isSameDay(date, today);
+          this.addDayCell(date, false, isToday);
+        }
+
+        // Add empty cells for days after month end
+        const totalCells = 42; // 6 weeks
+        const remainingCells = totalCells - (startingDay + totalDays);
+        for (let i = 1; i <= remainingCells; i++) {
+          const nextMonthDay = new Date(year, month + 1, i);
+          this.addDayCell(nextMonthDay, true);
+        }
+      }
+
+      addDayCell(date, isOtherMonth, isToday = false) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        if (isOtherMonth) dayEl.classList.add('other-month');
+        if (isToday) dayEl.classList.add('today');
+        if (this.isSameDay(date, this.selectedDate)) {
+          dayEl.style.background = 'var(--light-purple)';
+        }
+
+        const dayNumber = date.getDate();
+        const moonPhase = this.getMoonPhase(date);
+        const notes = this.getDayNotes(date);
+        const cycleInfo = this.getCycleInfo(date);
+
+        dayEl.innerHTML = `
+          <div class="day-number">${dayNumber}</div>
+          <div class="moon-phase">${moonPhase.emoji}</div>
+          ${cycleInfo.period ? '<div class="period-indicator"></div>' : ''}
+          ${cycleInfo.fertile ? '<div class="fertile-indicator"></div>' : ''}
+          ${notes ? `<div class="day-notes" title="${notes}">${notes.substring(0, 15)}${notes.length > 15 ? '...' : ''}</div>` : ''}
+        `;
+
+        dayEl.addEventListener('click', () => this.selectDate(date));
+        this.calendarDaysEl.appendChild(dayEl);
+      }
+
+      getMoonPhase(date) {
+        // Simplified moon phase calculation based on date
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+        
+        // This is a simplified calculation - real moon phases would use more complex astronomy
+        const phase = (year + month + day) % 8;
+        
+        const phases = [
+          { emoji: '🌑', name: 'New Moon' },
+          { emoji: '🌒', name: 'Waxing Crescent' },
+          { emoji: '🌓', name: 'First Quarter' },
+          { emoji: '🌔', name: 'Waxing Gibbous' },
+          { emoji: '🌕', name: 'Full Moon' },
+          { emoji: '🌖', name: 'Waning Gibbous' },
+          { emoji: '🌗', name: 'Last Quarter' },
+          { emoji: '🌘', name: 'Waning Crescent' }
+        ];
+        
+        return phases[phase];
+      }
+
+      getCycleInfo(date) {
+        // Simplified cycle tracking - this would be more complex in a real app
+        if (!this.cycleData.lastPeriod) return { period: false, fertile: false };
+        
+        const cycleDay = Math.floor((date - new Date(this.cycleData.lastPeriod)) / (1000 * 60 * 60 * 24));
+        const period = cycleDay >= 0 && cycleDay < 5; // Assume 5-day period
+        const fertile = cycleDay >= 10 && cycleDay < 16; // Assume fertile window
+        
+        return { period, fertile };
+      }
+
+      selectDate(date) {
+        this.selectedDate = date;
+        this.renderCalendar();
+        this.updateNotesSection();
+      }
+
+      updateNotesSection() {
+        const dateStr = this.formatDate(this.selectedDate);
+        this.selectedDateEl.textContent = dateStr;
+        this.dayNotesEl.value = this.getDayNotes(this.selectedDate) || '';
+      }
+
+      saveNotes() {
+        const dateKey = this.selectedDate.toDateString();
+        const notes = this.dayNotesEl.value.trim();
+        
+        if (notes) {
+          this.notes[dateKey] = notes;
+        } else {
+          delete this.notes[dateKey];
+        }
+        
+        this.saveNotesToStorage();
+        this.renderCalendar();
+      }
+
+      getDayNotes(date) {
+        return this.notes[date.toDateString()] || '';
+      }
+
+      previousMonth() {
+        this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+        this.renderCalendar();
+      }
+
+      nextMonth() {
+        this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+        this.renderCalendar();
+      }
+
+      goToToday() {
+        this.currentDate = new Date();
+        this.selectedDate = new Date();
+        this.renderCalendar();
+        this.updateNotesSection();
+      }
+
+      isSameDay(date1, date2) {
+        return date1.toDateString() === date2.toDateString();
+      }
+
+      formatDate(date) {
+        const options = { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        };
+        return date.toLocaleDateString('en-US', options);
+      }
+
+      loadNotes() {
+        const stored = localStorage.getItem('moonCalendarNotes');
+        return stored ? JSON.parse(stored) : {};
+      }
+
+      saveNotesToStorage() {
+        localStorage.setItem('moonCalendarNotes', JSON.stringify(this.notes));
+      }
+
+      loadCycleData() {
+        const stored = localStorage.getItem('moonCalendarCycle');
+        return stored ? JSON.parse(stored) : { lastPeriod: null, cycleLength: 28 };
+      }
+
+      setupPWA() {
+        let deferredPrompt;
+
+        // Listen for beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+        });
+
+        // Install button click handler
+        this.installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              this.installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+          } else {
+            this.showInstallInstructions();
+          }
+        });
+
+        // Hide install button if already installed
+        window.addEventListener('appinstalled', () => {
+          this.installBtn.style.display = 'none';
+        });
+
+        // Check if already in standalone mode
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+          this.installBtn.style.display = 'none';
+        }
+      }
+
+      showInstallInstructions() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
+        
+        let message = '';
+        
+        if (isIOS) {
+          message = 'To install this app:\n1. Tap the share button 📱\n2. Scroll down\n3. Tap "Add to Home Screen"';
+        } else if (isAndroid) {
+          message = 'To install this app:\n1. Tap the menu (3 dots) ⋮\n2. Tap "Add to Home Screen"\n3. Tap "Add"';
+        } else {
+          message = 'Look for "Add to Home Screen" or "Install" in your browser menu';
+        }
+        
+        alert(message);
       }
     }
 
-    // Override the original updateStats to also update status bar
-    const originalUpdateStats = app.updateStats;
-    app.updateStats = function() {
-      originalUpdateStats.call(this);
-      updateStatusBar();
-    };
+    // Initialize the app
+    const moonCalendar = new MoonCalendar();
   </script>
-
-  <script src="script.js"></script>
 </body>
 </html>
