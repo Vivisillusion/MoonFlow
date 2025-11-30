@@ -1,25 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lunar Chaos Calendar 🌙🌀</title>
+  <title>Calendário Lunar Caótico 🌙🌀</title>
   
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#b8a4d4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Lunar Chaos Calendar">
-  
-  <!-- App Icons -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌙</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b8a4d4' rx='20'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>🌙</text></svg>">
+  <meta name="apple-mobile-web-app-title" content="Calendário Lunar">
   
   <style>
     /* ===================================
-       CHAOS TO-DO LIST STYLES (Your beautiful CSS)
+       SEU CSS ORIGINAL (mantido igual)
        =================================== */
-
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
 
     :root {
@@ -375,6 +370,17 @@
       box-shadow: 0 0 0 3px rgba(184, 164, 212, 0.1);
     }
 
+    /* Loading State */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .loading::after {
+      content: ' 🌙 Carregando...';
+      font-size: 0.8rem;
+    }
+
     /* Install Button in Footer */
     .app-footer {
       text-align: center;
@@ -450,30 +456,30 @@
   <div class="container">
     <!-- Header -->
     <header>
-      <h1>Lunar Chaos Calendar <span class="moon-icon">🌙🌀</span></h1>
-      <p class="subtitle">Track your cycle, embrace the beautiful chaos</p>
+      <h1>Calendário Lunar Caótico <span class="moon-icon">🌙🌀</span></h1>
+      <p class="subtitle">Acompanhe seu ciclo, abrace o caos lunar</p>
     </header>
 
     <!-- Calendar Header -->
     <div class="calendar-header">
       <div class="month-nav">
         <button class="btn btn-outline" id="prev-month">‹</button>
-        <div class="current-month" id="current-month">November 2025</div>
+        <div class="current-month" id="current-month">Carregando...</div>
         <button class="btn btn-outline" id="next-month">›</button>
       </div>
-      <button class="btn btn-purple" id="today-btn">Today</button>
+      <button class="btn btn-purple" id="today-btn">Hoje</button>
     </div>
 
     <!-- Calendar Grid -->
     <div class="calendar-grid">
       <div class="weekdays">
-        <div class="weekday">Sun</div>
-        <div class="weekday">Mon</div>
-        <div class="weekday">Tue</div>
-        <div class="weekday">Wed</div>
-        <div class="weekday">Thu</div>
-        <div class="weekday">Fri</div>
-        <div class="weekday">Sat</div>
+        <div class="weekday">Dom</div>
+        <div class="weekday">Seg</div>
+        <div class="weekday">Ter</div>
+        <div class="weekday">Qua</div>
+        <div class="weekday">Qui</div>
+        <div class="weekday">Sex</div>
+        <div class="weekday">Sáb</div>
       </div>
       <div class="days-grid" id="calendar-days">
         <!-- Calendar days will be generated here -->
@@ -482,32 +488,32 @@
 
     <!-- Notes Section -->
     <div class="notes-section">
-      <div class="selected-date" id="selected-date">Select a day to add notes</div>
+      <div class="selected-date" id="selected-date">Selecione um dia para adicionar notas</div>
       <textarea 
         class="notes-input" 
         id="day-notes" 
-        placeholder="Add notes for this day..."
+        placeholder="Adicione notas para este dia..."
       ></textarea>
-      <button class="btn btn-purple" id="save-notes">Save Notes</button>
+      <button class="btn btn-purple" id="save-notes">Salvar Notas</button>
     </div>
 
     <!-- Install Button in Footer -->
     <div class="app-footer">
       <button class="install-btn" id="installBtn">
-        📲 Install App
+        📲 Instalar App
       </button>
     </div>
   </div>
 
   <script>
-    // Moon Phase Calendar App
+    // Calendário Lunar com dados precisos - APENAS 4 FASES
     class MoonCalendar {
       constructor() {
         this.currentDate = new Date();
         this.selectedDate = new Date();
         this.notes = this.loadNotes();
         this.periodDays = this.loadPeriodDays();
-        this.lastPhase = null;
+        this.moonPhasesCache = new Map();
         this.init();
       }
 
@@ -537,51 +543,57 @@
         this.saveNotesBtn.addEventListener('click', () => this.saveNotes());
       }
 
-      renderCalendar() {
+      async renderCalendar() {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
         
-        // Update month header
+        // Atualizar cabeçalho do mês
         const monthNames = [
-          'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
+          'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
         ];
         this.currentMonthEl.textContent = `${monthNames[month]} ${year}`;
 
-        // Get first day of month and total days
+        // Obter primeiro dia do mês e total de dias
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         const totalDays = lastDay.getDate();
         const startingDay = firstDay.getDay();
 
-        // Clear calendar
+        // Limpar calendário
         this.calendarDaysEl.innerHTML = '';
-        this.lastPhase = null;
+        this.calendarDaysEl.classList.add('loading');
 
-        // Add empty cells for days before month start
+        // Buscar fases da lua para este mês
+        const moonPhases = await this.getMoonPhasesForMonth(year, month + 1);
+
+        // Adicionar células vazias para dias antes do início do mês
         for (let i = 0; i < startingDay; i++) {
           const prevMonthDay = new Date(year, month, -i);
           this.addDayCell(prevMonthDay, true);
         }
 
-        // Add days of current month
+        // Adicionar dias do mês atual
         const today = new Date();
         for (let day = 1; day <= totalDays; day++) {
           const date = new Date(year, month, day);
           const isToday = this.isSameDay(date, today);
-          this.addDayCell(date, false, isToday);
+          const moonPhase = this.getMoonPhaseForDate(date, moonPhases);
+          this.addDayCell(date, false, isToday, moonPhase);
         }
 
-        // Add empty cells for days after month end
-        const totalCells = 42; // 6 weeks
+        // Adicionar células vazias para dias após o fim do mês
+        const totalCells = 42; // 6 semanas
         const remainingCells = totalCells - (startingDay + totalDays);
         for (let i = 1; i <= remainingCells; i++) {
           const nextMonthDay = new Date(year, month + 1, i);
           this.addDayCell(nextMonthDay, true);
         }
+
+        this.calendarDaysEl.classList.remove('loading');
       }
 
-      addDayCell(date, isOtherMonth, isToday = false) {
+      addDayCell(date, isOtherMonth, isToday = false, moonPhase = null) {
         const dayEl = document.createElement('div');
         dayEl.className = 'day';
         if (isOtherMonth) dayEl.classList.add('other-month');
@@ -595,18 +607,11 @@
         }
 
         const dayNumber = date.getDate();
-        const moonPhase = this.getMoonPhase(date);
         const notes = this.getDayNotes(date);
         
-        // Show moon only when phase changes
-        const showMoon = this.lastPhase === null || moonPhase.phase !== this.lastPhase.phase;
-        if (showMoon) {
-          this.lastPhase = moonPhase;
-        }
-
         dayEl.innerHTML = `
           <div class="day-number">${dayNumber}</div>
-          ${showMoon ? `
+          ${moonPhase ? `
             <div class="moon-phase">${moonPhase.emoji}</div>
             <div class="moon-phase-name">${moonPhase.name}</div>
           ` : ''}
@@ -618,15 +623,147 @@
         this.calendarDaysEl.appendChild(dayEl);
       }
 
-      getMoonPhase(date) {
-        // Simple 4-phase moon calculation
-        const daysSinceNewMoon = Math.floor((date - new Date(2000, 0, 6)) / (1000 * 60 * 60 * 24));
-        const phase = (daysSinceNewMoon % 29.53) / 29.53; // 0 to 1
+      async getMoonPhasesForMonth(year, month) {
+        const cacheKey = `${year}-${month}`;
         
-        if (phase < 0.03 || phase > 0.97) return { emoji: '🌑', name: 'New Moon', phase: 0 };
-        if (phase < 0.47) return { emoji: '🌙', name: 'Waxing', phase: 1 };
-        if (phase < 0.53) return { emoji: '🌕', name: 'Full Moon', phase: 2 };
-        return { emoji: '🌜', name: 'Waning', phase: 3 };
+        // Verificar cache primeiro
+        if (this.moonPhasesCache.has(cacheKey)) {
+          return this.moonPhasesCache.get(cacheKey);
+        }
+
+        try {
+          // Usar cálculo local mais preciso - APENAS 4 FASES
+          const moonPhases = this.calculateMoonPhasesForMonth(year, month);
+          
+          // Salvar no cache
+          this.moonPhasesCache.set(cacheKey, moonPhases);
+          return moonPhases;
+          
+        } catch (error) {
+          console.warn('Erro no cálculo lunar:', error);
+          return {};
+        }
+      }
+
+      calculateMoonPhasesForMonth(year, month) {
+        const moonPhases = {};
+        const daysInMonth = new Date(year, month, 0).getDate();
+        
+        // DATAS EXATAS DAS FASES DA LUA PARA 2025-2026 (baseado nos seus dados)
+        const moonPhaseDates = {
+          // 2025
+          '2025-01-06': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-01-13': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-01-21': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-01-29': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-02-05': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-02-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-02-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-02-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-03-06': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-03-14': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-03-22': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-03-29': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-04-04': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-04-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-04-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-04-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-05-04': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-05-12': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-05-20': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-05-27': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-06-03': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-06-11': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-06-18': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-06-25': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-07-02': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-07-10': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-07-17': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-07-24': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-08-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-08-09': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-08-16': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-08-23': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-09-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-09-07': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-09-14': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-09-21': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-10-01': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          '2025-10-07': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-10-13': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-10-21': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          
+          '2025-11-05': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-11-12': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-11-20': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          '2025-11-28': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          
+          '2025-12-04': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2025-12-11': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2025-12-20': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          '2025-12-27': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          
+          // 2026 - baseado nos dados que você forneceu
+          '2026-01-03': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2026-01-10': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2026-01-18': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          '2026-01-26': { emoji: '🌙', name: 'Crescente', type: 'crescente' },
+          
+          '2026-02-01': { emoji: '🌕', name: 'Cheia', type: 'cheia' },
+          '2026-02-09': { emoji: '🌜', name: 'Minguante', type: 'minguante' },
+          '2026-02-17': { emoji: '🌑', name: 'Nova', type: 'nova' },
+          '2026-02-24': { emoji: '🌙', name: 'Crescente', type: 'crescente' }
+        };
+
+        // Para cada dia do mês, determinar a fase da lua
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month - 1, day);
+          const dateString = date.toISOString().split('T')[0];
+          
+          // Se é uma data exata de fase lunar
+          if (moonPhaseDates[dateString]) {
+            moonPhases[date.toDateString()] = moonPhaseDates[dateString];
+          } else {
+            // Para dias entre fases, determinar fase baseada na data mais próxima
+            moonPhases[date.toDateString()] = this.getPhaseForDate(date, moonPhaseDates);
+          }
+        }
+        
+        return moonPhases;
+      }
+
+      getPhaseForDate(date, moonPhaseDates) {
+        const dateString = date.toISOString().split('T')[0];
+        const dateTime = date.getTime();
+        
+        // Encontrar a fase lunar mais próxima
+        let closestPhase = { emoji: '🌙', name: 'Lua', type: 'default' };
+        let minDiff = Infinity;
+        
+        for (const [phaseDateStr, phase] of Object.entries(moonPhaseDates)) {
+          const phaseDate = new Date(phaseDateStr);
+          const diff = Math.abs(dateTime - phaseDate.getTime());
+          
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestPhase = phase;
+          }
+        }
+        
+        return closestPhase;
+      }
+
+      getMoonPhaseForDate(date, moonPhases) {
+        return moonPhases[date.toDateString()] || { emoji: '🌙', name: 'Lua', type: 'default' };
       }
 
       togglePeriodDay(dateString) {
@@ -705,7 +842,7 @@
           month: 'long', 
           day: 'numeric' 
         };
-        return date.toLocaleDateString('en-US', options);
+        return date.toLocaleDateString('pt-BR', options);
       }
 
       loadNotes() {
@@ -763,18 +900,18 @@
         let message = '';
         
         if (isIOS) {
-          message = 'To install this app:\n1. Tap the share button 📱\n2. Scroll down\n3. Tap "Add to Home Screen"';
+          message = 'Para instalar este app:\n1. Toque no botão de compartilhar 📱\n2. Role para baixo\nn3. Toque em "Adicionar à Tela de Início"';
         } else if (isAndroid) {
-          message = 'To install this app:\n1. Tap the menu (3 dots) ⋮\n2. Tap "Add to Home Screen"\n3. Tap "Add"';
+          message = 'Para instalar este app:\n1. Toque no menu (3 pontos) ⋮\n2. Toque em "Adicionar à tela inicial"\n3. Toque em "Adicionar"';
         } else {
-          message = 'Look for "Add to Home Screen" or "Install" in your browser menu';
+          message = 'Procure por "Adicionar à Tela de Início" ou "Instalar" no menu do seu navegador';
         }
         
         alert(message);
       }
     }
 
-    // Initialize the app
+    // Inicializar o app
     const moonCalendar = new MoonCalendar();
   </script>
 </body>
