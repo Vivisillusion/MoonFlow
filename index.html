@@ -681,9 +681,11 @@
         // Clear calendar
         this.calendarDaysEl.innerHTML = '';
 
-        // Add empty cells for days before month start
-        for (let i = 0; i < startingDay; i++) {
-          const prevMonthDay = new Date(year, month, -i);
+        // Add empty cells for days before month start (in correct order)
+        const prevMonthLastDay = new Date(year, month, 0);
+        const prevMonthTotal = prevMonthLastDay.getDate();
+        for (let i = startingDay - 1; i >= 0; i--) {
+          const prevMonthDay = new Date(year, month - 1, prevMonthTotal - i);
           this.addDayCell(prevMonthDay, true);
         }
 
